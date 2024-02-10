@@ -6,8 +6,6 @@ ENV NODE_ENV=production
 
 COPY . /home/app
 
-RUN npm install
-
 EXPOSE 3000
 
 CMD ["node", "/home/app/dist/app.js"]
