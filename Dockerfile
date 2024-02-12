@@ -6,6 +6,8 @@ ENV NODE_ENV=dev
 
 COPY . /home/app
 
+WORKDIR /home/app
+
 RUN npm install && npx tsc
 
 EXPOSE 3000
