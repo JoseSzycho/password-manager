@@ -1,3 +1,3 @@
-import { gmailProvider } from './providers/googleProvider';
+import { gmailProvider } from './providers/gmailProvider';
 
-export { gmailProvider  };
+export { gmailProvider       };
