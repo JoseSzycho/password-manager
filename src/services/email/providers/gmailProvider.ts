@@ -8,4 +8,4 @@ const gmailProvider = new SMTPProvider(
     process.env.GMAIL_PROVIDER_PASSWORD || ''
 );
 
-export { gmailProvider        };
+export { gmailProvider };
