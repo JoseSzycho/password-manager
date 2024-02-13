@@ -1,10 +1,24 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import { authService, AuthService } from './auth.service';
+import { IUser } from './interface';
 
 class AuthController {
-    signUp = (req: Request, res: Response) => {
-        res.status(200).json(req.body);
+    private authService: AuthService;
+
+    constructor(authService: AuthService) {
+        this.authService = authService;
+    }
+
+    signUp = async (req: Request, res: Response, next: NextFunction) => {
+        const user: IUser = req.body;
+        try {
+            const data = await this.authService.signUp(user);
+            res.status(201).json(data);
+        } catch (error) {
+            next(error);
+        }
     };
 }
 
-const authController = new AuthController();
+const authController = new AuthController(authService);
 export { authController };
