@@ -6,5 +6,6 @@ import { userSchema } from './schema';
 const router: Router = express.Router();
 
 router.post('/signup', validateReqBody(userSchema), authController.signUp);
+router.post('/register', authController.register);
 
 export { router as authRouter };
