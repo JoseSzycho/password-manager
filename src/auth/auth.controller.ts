@@ -11,8 +11,9 @@ class AuthController {
 
     signUp = async (req: Request, res: Response, next: NextFunction) => {
         const user: IUser = req.body;
+        const origin = req.get('origin') ?? 'http://localhost:3000';
         try {
-            await this.authService.signUp(user);
+            await this.authService.signUp(user, origin);
             res.status(200).json(user);
         } catch (error) {
             next(error);
@@ -25,6 +26,18 @@ class AuthController {
         try {
             const user = await this.authService.register(jwt);
             res.status(201).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    loginRequest = async (req: Request, res: Response, next: NextFunction) => {
+        const email: string = req.body.email;
+        try {
+            await this.authService.loginRequest(email);
+            // Always response with 204, so no one can know
+            // if a email is registered or not
+            res.status(204).json('');
         } catch (error) {
             next(error);
         }
