@@ -4,7 +4,7 @@ import { IUser } from './interface';
 import { jwtManager } from '../services/jwt';
 import { gmailProvider } from '../services/email';
 import { registerModel } from '../services/email/models/registerModel';
-import { ConflictException, InternalServerErrorException } from '../errors';
+import { ConflictException } from '../errors';
 import { ForbiddenException } from '../errors';
 import { userRegistrationJWT } from './interface/userRegistrationJWT.interface';
 import { UserDto } from './dto';
@@ -23,24 +23,21 @@ class AuthService {
      * Once the user clicks on the link, the user will be created and
      * stored into the data base.
      * @param user The user information
-     * @returns The user information
+     * @returns Nothing to avoid registered email leaks
      */
     async signUp(user: IUser, origin: string) {
         if (await this.prisma.user.findUnique({ where: { email: user.email } }))
-            throw new ConflictException('Email already in use');
+            return;
 
         const token = jwtManager.generate({ ...user, action: 'register' });
         const registrationLink = `${origin}/auth/register?jwt=${token}`;
-        const emailSent = await gmailProvider.send(
+
+        await gmailProvider.send(
             registerModel(user, registrationLink),
             user.email
         );
 
-        if (!emailSent) {
-            throw new InternalServerErrorException('Server can not send email');
-        }
-
-        return user;
+        return;
     }
 
     /**
@@ -53,8 +50,7 @@ class AuthService {
 
         try {
             const payload = jwtManager.getPayload(jwt) as userRegistrationJWT;
-            if (payload.action != 'register')
-                throw new ForbiddenException('Invalid action');
+            if (payload.action != 'register') throw new Error();
 
             user = new UserDto(payload);
         } catch (error) {
@@ -62,17 +58,17 @@ class AuthService {
         }
 
         try {
-            await this.prisma.user.create({
+            const createdUser = await this.prisma.user.create({
                 data: {
                     ...user,
                 },
             });
 
-            return user;
+            return new UserDto(createdUser);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 if (error.code === 'P2002') {
-                    throw new ConflictException('Email address in use.');
+                    throw new ConflictException('Account already created');
                 }
             }
             throw error;
@@ -83,7 +79,7 @@ class AuthService {
      * Sends a email to the email of the requested login with a magic
      * link that allows to login into the account.
      * @param email The user email
-     * @returns Nothing
+     * @returns Nothing to avoid registered email leaks
      */
     async loginRequest(email: string, origin: string) {
         if (
