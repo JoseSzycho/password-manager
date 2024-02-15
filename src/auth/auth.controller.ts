@@ -14,7 +14,7 @@ class AuthController {
         const origin = req.get('origin') ?? 'http://localhost:3000';
         try {
             await this.authService.signUp(user, origin);
-            res.status(200).json(user);
+            res.status(204).json('');
         } catch (error) {
             next(error);
         }
