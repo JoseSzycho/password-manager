@@ -8,13 +8,18 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("LOCAL_URL_DATABASE_URL")
 }
 
 model User {
-  id        String @id @default(uuid())
+  id String @id @default(uuid())
+
   firstName String
   lastName  String
   email     String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([email])
 }
