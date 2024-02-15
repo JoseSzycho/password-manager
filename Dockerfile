@@ -8,7 +8,7 @@ COPY . /home/app
 
 WORKDIR /home/app
 
-RUN npm install && npx tsc
+RUN npm install && npm run db:generate && npx tsc
 
 EXPOSE 3000
 
