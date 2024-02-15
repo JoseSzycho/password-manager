@@ -9,6 +9,7 @@ import { ForbiddenException } from '../errors';
 import { userRegistrationJWT } from './interface/userRegistrationJWT.interface';
 import { UserDto } from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { loginModel } from '../services/email/models/loginModel';
 
 class AuthService {
     private prisma: PrismaClient;
@@ -24,12 +25,12 @@ class AuthService {
      * @param user The user information
      * @returns The user information
      */
-    async signUp(user: IUser) {
+    async signUp(user: IUser, origin: string) {
         if (await this.prisma.user.findUnique({ where: { email: user.email } }))
             throw new ConflictException('Email already in use');
 
         const token = jwtManager.generate({ ...user, action: 'register' });
-        const registrationLink = `http://localhost:3000/auth/register?jwt=${token}`;
+        const registrationLink = `${origin}/auth/register?jwt=${token}`;
         const emailSent = await gmailProvider.send(
             registerModel(user, registrationLink),
             user.email
@@ -76,6 +77,27 @@ class AuthService {
             }
             throw error;
         }
+    }
+
+    /**
+     * Sends a email to the email of the requested login with a magic
+     * link that allows to login into the account.
+     * @param email The user email
+     * @returns Nothing
+     */
+    async loginRequest(email: string, origin: string) {
+        if (
+            !(await this.prisma.user.findUnique({
+                where: { email: email },
+            }))
+        )
+            return;
+
+        const token = jwtManager.generate({ email: email, action: 'login' });
+        const loginLink = `${origin}/auth/loginRequest?jwt=${token}`;
+        await gmailProvider.send(loginModel(loginLink), email);
+
+        return;
     }
 }
 
