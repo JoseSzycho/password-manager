@@ -33,8 +33,9 @@ class AuthController {
 
     loginRequest = async (req: Request, res: Response, next: NextFunction) => {
         const email: string = req.body.email;
+        const origin = req.get('origin') ?? 'http://localhost:3000';
         try {
-            await this.authService.loginRequest(email);
+            await this.authService.loginRequest(email, origin);
             // Always response with 204, so no one can know
             // if a email is registered or not
             res.status(204).json('');
