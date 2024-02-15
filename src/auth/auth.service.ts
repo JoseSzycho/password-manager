@@ -38,7 +38,7 @@ class AuthService {
         if (!emailSent) {
             throw new InternalServerErrorException('Server can not send email');
         }
-        console.log(token);
+
         return user;
     }
 
