@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../database/prisma';
-import { IUser, IUserLoginJWT } from './interface';
+import { IUser } from './interface';
 import { jwtManager } from '../services/jwt';
 import { gmailProvider } from '../services/email';
 import { registerModel } from '../services/email/models/registerModel';
