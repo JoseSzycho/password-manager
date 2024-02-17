@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { authService, AuthService } from './auth.service';
 import { IUser } from './interface';
+import { InternalServerErrorException } from '../errors';
 
 class AuthController {
     private authService: AuthService;
@@ -21,11 +22,27 @@ class AuthController {
     };
 
     register = async (req: Request, res: Response, next: NextFunction) => {
+        const origin = req.get('origin') ?? 'http://localhost:3000';
         const jwt = req.query.jwt as string;
+        // set internalUse to not set email login request
+        const internalUse = true;
 
         try {
+            // register user and get login link
             const user = await this.authService.register(jwt);
-            res.status(201).json(user);
+            const loginLink = await this.authService.loginRequest(
+                user.email,
+                origin,
+                internalUse
+            );
+            if (loginLink) {
+                // if register jwt valid, should always being a login link,
+                // ass error is thrown if jwt was invalid
+                res.redirect(loginLink);
+            } else {
+                // if no login link, there is some server error
+                throw new InternalServerErrorException('Unexpected error');
+            }
         } catch (error) {
             next(error);
         }
