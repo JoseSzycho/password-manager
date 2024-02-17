@@ -12,5 +12,6 @@ router.post(
     validateReqBody(emailSchema),
     authController.loginRequest
 );
+router.get('/login', authController.login);
 
 export { router as authRouter };
