@@ -79,9 +79,13 @@ class AuthService {
      * Sends a email to the email of the requested login with a magic
      * link that allows to login into the account.
      * @param email The user email
-     * @returns Nothing to avoid registered email leaks
+     * @returns undefined if mail not found, the login link if found
      */
-    async loginRequest(email: string, origin: string) {
+    async loginRequest(
+        email: string,
+        origin: string,
+        internalPetition = false
+    ) {
         const user = await this.prisma.user.findUnique({
             where: { email: email },
         });
@@ -89,10 +93,11 @@ class AuthService {
         if (!user) return;
 
         const token = jwtManager.generate({ userId: user.id, action: 'login' });
-        const loginLink = `${origin}/auth/loginRequest?jwt=${token}`;
-        await gmailProvider.send(loginModel(loginLink), email);
+        const loginLink = `${origin}/auth/login?jwt=${token}`;
+        if (!internalPetition)
+            await gmailProvider.send(loginModel(loginLink), email);
 
-        return;
+        return loginLink;
     }
 
     /**
