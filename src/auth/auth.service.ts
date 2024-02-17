@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../database/prisma';
-import { IUser } from './interface';
+import { IUser, IUserLoginJWT } from './interface';
 import { jwtManager } from '../services/jwt';
 import { gmailProvider } from '../services/email';
 import { registerModel } from '../services/email/models/registerModel';
@@ -82,14 +82,13 @@ class AuthService {
      * @returns Nothing to avoid registered email leaks
      */
     async loginRequest(email: string, origin: string) {
-        if (
-            !(await this.prisma.user.findUnique({
-                where: { email: email },
-            }))
-        )
-            return;
+        const user = await this.prisma.user.findUnique({
+            where: { email: email },
+        });
 
-        const token = jwtManager.generate({ email: email, action: 'login' });
+        if (!user) return;
+
+        const token = jwtManager.generate({ userId: user.id, action: 'login' });
         const loginLink = `${origin}/auth/loginRequest?jwt=${token}`;
         await gmailProvider.send(loginModel(loginLink), email);
 
