@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../database/prisma';
-import { IUser } from './interface';
+import { IUser, IUserLoginJWT } from './interface';
 import { jwtManager } from '../services/jwt';
 import { gmailProvider } from '../services/email';
 import { registerModel } from '../services/email/models/registerModel';
@@ -93,6 +93,25 @@ class AuthService {
         await gmailProvider.send(loginModel(loginLink), email);
 
         return;
+    }
+
+    /**
+     * Validate a request login jwt, if jwt is valid, responses with a
+     * renewed jwt that can be used for authorization
+     * @param token The request login jwt
+     * @returns The renewed jwt
+     */
+    async login(token: string) {
+        let payload: IUserLoginJWT;
+
+        try {
+            payload = jwtManager.getPayload(token) as IUserLoginJWT;
+            if (payload.action != 'login') throw new Error();
+        } catch (error) {
+            throw new ForbiddenException('Invalid token');
+        }
+
+        return jwtManager.generate({ id: payload });
     }
 }
 
