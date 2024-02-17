@@ -43,6 +43,23 @@ class AuthController {
             next(error);
         }
     };
+
+    login = async (req: Request, res: Response, next: NextFunction) => {
+        const jwt = req.query.jwt as string;
+        try {
+            const authJwt = await this.authService.login(jwt);
+            res.cookie('jwt', authJwt, {
+                httpOnly: true,
+                maxAge: 60 * 60 * 1000,
+                signed: true,
+            });
+            res.redirect(
+                `${req.get('origin') ?? 'http://localhost:3000'}/dashboard`
+            );
+        } catch (error) {
+            next(error);
+        }
+    };
 }
 
 const authController = new AuthController(authService);
