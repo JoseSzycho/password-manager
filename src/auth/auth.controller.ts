@@ -72,9 +72,7 @@ class AuthController {
                 httpOnly: true,
                 maxAge: 60 * 60 * 1000,
                 signed: true,
-            }).redirect(
-                `${req.get('origin') ?? 'http://localhost:3000'}/dashboard`
-            );
+            }).redirect(`${URLs.origin}/dashboard`);
         } catch (error) {
             next(error);
         }
