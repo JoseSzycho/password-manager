@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import { authService, AuthService } from './auth.service';
 import { IUser } from './interface';
 import { InternalServerErrorException } from '../errors';
+import 'dotenv/config';
+import { URLs } from '../config/URLs.config';
 
 class AuthController {
     private authService: AuthService;
@@ -22,9 +24,9 @@ class AuthController {
     };
 
     register = async (req: Request, res: Response, next: NextFunction) => {
-        const origin = req.get('origin') ?? 'http://localhost:3000';
+        const origin = URLs.origin;
         const jwt = req.query.jwt as string;
-        // set internalUse to not set email login request
+        // set internalUse to not send the email login request
         const internalUse = true;
 
         try {
@@ -35,9 +37,10 @@ class AuthController {
                 origin,
                 internalUse
             );
+
             if (loginLink) {
                 // if register jwt valid, should always being a login link,
-                // ass error is thrown if jwt was invalid
+                // as error is thrown if jwt was invalid
                 res.redirect(loginLink);
             } else {
                 // if no login link, there is some server error
@@ -50,7 +53,7 @@ class AuthController {
 
     loginRequest = async (req: Request, res: Response, next: NextFunction) => {
         const email: string = req.body.email;
-        const origin = req.get('origin') ?? 'http://localhost:3000';
+        const origin = URLs.origin;
         try {
             await this.authService.loginRequest(email, origin);
             // Always response with 204, so no one can know
@@ -69,8 +72,7 @@ class AuthController {
                 httpOnly: true,
                 maxAge: 60 * 60 * 1000,
                 signed: true,
-            });
-            res.redirect(
+            }).redirect(
                 `${req.get('origin') ?? 'http://localhost:3000'}/dashboard`
             );
         } catch (error) {
